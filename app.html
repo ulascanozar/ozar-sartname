@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Şartname Aracı — ÖZAR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #f0f2f7;
+  --sur: #ffffff;
+  --sur2: #f8fafc;
+  --brd: #e2e6f0;
+  --brd2: #cbd5e1;
+  --acc: #3b2db6;
+  --acc-lt: #ede9ff;
+  --acc2: #d7261e;
+  --grn: #059669;
+  --grn-lt: #ecfdf5;
+  --ylw: #d97706;
+  --ylw-lt: #fffbeb;
+  --red: #dc2626;
+  --red-lt: #fef2f2;
+  --pur: #7c3aed;
+  --tx: #0f172a;
+  --tx2: #475569;
+  --tx3: #94a3b8;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 4px 12px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-lg: 0 20px 40px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--tx); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── TOPBAR ─────────────────────────────────────── */
+.topbar {
+  height: 56px;
+  background: var(--sur);
+  border-bottom: 1px solid var(--brd);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-area img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) saturate(100%) invert(14%) sepia(68%) saturate(2000%) hue-rotate(228deg) brightness(80%);
+}
+.logo-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+.topbar-div { width: 1px; height: 24px; background: var(--brd); }
+
+/* Steps */
+.steps { display: flex; align-items: center; gap: 0; }
+.step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx3);
+  border-radius: 8px;
+  cursor: default;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.step.active { background: var(--acc-lt); color: var(--acc); }
+.step.done { color: var(--grn); cursor: pointer; }
+.step.done:hover { background: var(--grn-lt); }
+.step-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--brd);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+.step.active .step-num { background: var(--acc); color: #fff; }
+.step.done .step-num { background: var(--grn); color: #fff; }
+.step-arrow { color: var(--brd2); font-size: 14px; padding: 0 2px; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.user-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--tx2);
+  background: var(--sur2);
+  border: 1px solid var(--brd);
+  border-radius: 20px;
+  padding: 4px 10px 4px 4px;
+}
+.user-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--acc-lt); color: var(--acc); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* Pages strip */
+.pages-strip {
+  width: 0; min-width: 0;
+  background: var(--sur);
+  border-right: 1px solid var(--brd);
+  display: flex; flex-direction: column;
+  overflow: hidden; transition: width .2s; flex-shrink: 0;
+}
+.pages-strip.open { width: 110px; min-width: 110px; }
+.ps-hdr {
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--brd);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.ps-hdr-t { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--tx3); text-transform: uppercase; }
+.page-list { flex: 1; overflow-y: auto; padding: 6px; }
+.page-list::-webkit-scrollbar { width: 3px; }
+.page-list::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 2px; }
+.pi {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 4px; border-radius: 8px; cursor: pointer;
+  border: 1.5px solid transparent; margin-bottom: 3px; transition: all .12s;
+}
+.pi:hover { background: var(--sur2); border-color: var(--brd); }
+.pi.active { background: var(--acc-lt); border-color: var(--acc); }
+.pi.skip-mode { opacity: .35; }
+.pi-thumb { width: 64px; height: 86px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--brd); flex-shrink: 0; }
+.pi-thumb canvas { width: 100%; height: 100%; display: block; }
+.pi-num { font-size: 9px; font-weight: 600; color: var(--tx2); }
+.pi-badge { font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 8px; }
+.b-use { background: rgba(5,150,105,.1); color: var(--grn); }
+.b-skip { background: rgba(148,163,184,.15); color: var(--tx3); }
+.b-done { background: var(--acc-lt); color: var(--acc); }
+.b-scan { background: var(--ylw-lt); color: var(--ylw); }
+
+/* Canvas area */
+.canvas-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #e8ebf2; min-width: 0; }
+.ctoolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 14px; background: var(--sur);
+  border-bottom: 1px solid var(--brd); flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.cscroll { flex: 1; overflow: auto; display: flex; align-items: flex-start; justify-content: center; padding: 24px; }
+.cscroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.cscroll::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 3px; }
+.cwrap { position: relative; user-select: none; flex-shrink: 0; }
+#pageCanvas { display: block; box-shadow: var(--shadow-lg); border-radius: 6px; }
+.zone-ov { position: absolute; left: 0; right: 0; pointer-events: none; display: none; }
+.zone-header { background: rgba(215,38,30,.1); border-bottom: 2px dashed rgba(215,38,30,.5); }
+.zone-footer { background: rgba(215,38,30,.1); border-top: 2px dashed rgba(215,38,30,.5); }
+.zone-lbl {
+  position: absolute; right: 8px;
+  font-size: 9px; font-family: var(--mono); font-weight: 700;
+  color: #fff; background: rgba(215,38,30,.8);
+  padding: 2px 6px; border-radius: 3px;
+}
+.sel-rect { position: absolute; border: 2px dashed var(--ylw); background: rgba(217,119,6,.08); pointer-events: none; display: none; }
+.img-ov { position: absolute; border: 2px solid var(--grn); background: rgba(5,150,105,.07); border-radius: 2px; }
+.img-ov-del {
+  position: absolute; top: -12px; right: 0;
+  width: 14px; height: 14px; background: var(--red); color: #fff;
+  border: none; border-radius: 3px; cursor: pointer; font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: .12s;
+}
+.img-ov:hover .img-ov-del { opacity: 1; }
+
+/* Drop zone */
+.dropzone {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: var(--bg);
+}
+.drop-icon {
+  width: 72px; height: 72px;
+  background: var(--sur);
+  border: 2px dashed var(--brd2);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; transition: .2s;
+}
+.dropzone:hover .drop-icon, .dropzone.dov .drop-icon { border-color: var(--acc); background: var(--acc-lt); }
+.drop-title { font-size: 18px; font-weight: 700; color: var(--tx); }
+.drop-sub { font-size: 13px; color: var(--tx2); }
+.drop-note {
+  max-width: 480px; background: var(--sur);
+  border: 1px solid var(--brd); border-radius: 10px;
+  padding: 12px 16px; font-size: 11px; color: var(--tx2); line-height: 1.8; text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.drop-note b { color: var(--tx); }
+
+/* Progress */
+.prog-area {
+  padding: 28px 32px; display: none; flex-direction: column; gap: 12px;
+  background: var(--bg); flex: 1; overflow: auto;
+}
+.prog-title { font-size: 16px; font-weight: 700; color: var(--tx); display: flex; align-items: center; gap: 10px; }
+.prog-pct { font-family: var(--mono); font-size: 16px; color: var(--acc); }
+.prog-bar { height: 6px; background: var(--brd); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--acc), #6366f1); border-radius: 3px; transition: width .4s; }
+.prog-info { font-size: 12px; color: var(--tx2); font-family: var(--mono); }
+.prog-log {
+  font-size: 11px; font-family: var(--mono); color: var(--tx2);
+  max-height: 280px; overflow-y: auto;
+  background: var(--sur); border: 1px solid var(--brd); border-radius: 8px;
+  padding: 12px; line-height: 1.9;
+}
+.prog-log::-webkit-scrollbar { width: 3px; }
+.prog-log::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 2px; }
+.plog-ok { color: var(--grn); }
+.plog-warn { color: var(--ylw); }
+.plog-err { color: var(--red); }
+
+/* Right panel */
+.rpanel {
+  width: 310px; min-width: 310px;
+  background: var(--sur);
+  border-left: 1px solid var(--brd);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: -2px 0 8px rgba(0,0,0,.03);
+}
+.rp-hdr {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--brd);
+  font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--tx2);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+  background: var(--sur2);
+}
+.rp-body { flex: 1; overflow-y: auto; padding: 16px; }
+.rp-body::-webkit-scrollbar { width: 3px; }
+.rp-body::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 2px; }
+
+.sec { margin-bottom: 20px; }
+.sec-t { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--tx3); margin-bottom: 8px; }
+.slider-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sl-lbl { font-size: 11px; color: var(--tx2); width: 80px; flex-shrink: 0; }
+.sl { flex: 1; accent-color: var(--acc); cursor: pointer; }
+.sl-val { font-family: var(--mono); font-size: 11px; color: var(--acc); width: 30px; text-align: right; font-weight: 600; }
+
+.hint { font-size: 11px; color: var(--tx2); line-height: 1.6; background: var(--sur2); border: 1px solid var(--brd); border-radius: 8px; padding: 8px 10px; }
+.hint b { color: var(--tx); }
+
+/* Text area */
+.pcontent {
+  width: 100%; background: var(--bg);
+  border: 1.5px solid var(--brd); border-radius: 8px;
+  padding: 10px; font-size: 11px; color: var(--tx);
+  white-space: pre-wrap; outline: none;
+  min-height: 140px; line-height: 1.7; font-family: var(--mono);
+  resize: vertical; cursor: text;
+  transition: border-color .15s;
+}
+.pcontent:focus { border-color: var(--acc); }
+
+/* Export cards */
+.exp-card {
+  background: var(--sur2);
+  border: 1.5px solid var(--brd);
+  border-radius: 12px; padding: 14px;
+  margin-bottom: 10px;
+  transition: border-color .15s;
+}
+.exp-card:hover { border-color: var(--brd2); }
+.exp-card-t { font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+.exp-card-d { font-size: 11px; color: var(--tx2); margin-bottom: 10px; line-height: 1.6; }
+.badge-offline { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-top: 6px; background: var(--grn-lt); color: var(--grn); }
+.badge-api { background: var(--ylw-lt); color: var(--ylw); display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-top: 6px; }
+.badge-warn { background: var(--red-lt); color: var(--red); display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-top: 6px; }
+
+/* Buttons */
+.btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--brd);
+  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--sur); color: var(--tx2); white-space: nowrap;
+}
+.btn:hover { background: var(--sur2); border-color: var(--brd2); color: var(--tx); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-p { background: var(--acc); border-color: var(--acc); color: #fff; }
+.btn-p:hover { background: #2f24a0; border-color: #2f24a0; color: #fff; box-shadow: 0 4px 10px rgba(59,45,182,.25); }
+.btn-g { background: var(--grn); border-color: var(--grn); color: #fff; }
+.btn-g:hover { filter: brightness(1.05); color: #fff; box-shadow: 0 4px 10px rgba(5,150,105,.25); }
+.btn-y { background: var(--ylw); border-color: var(--ylw); color: #fff; }
+.btn-y:hover { filter: brightness(1.05); color: #fff; }
+.btn-v { background: var(--pur); border-color: var(--pur); color: #fff; }
+.btn-v:hover { filter: brightness(1.1); color: #fff; }
+.btn-full { width: 100%; justify-content: center; padding: 9px; }
+
+/* Notif */
+.notif {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+  padding: 10px 18px; border-radius: 10px; font-size: 12px; font-weight: 600;
+  box-shadow: var(--shadow-lg); transform: translateY(60px); opacity: 0; transition: all .3s;
+  display: flex; align-items: center; gap: 8px;
+}
+.notif.on { transform: translateY(0); opacity: 1; }
+.ns { background: var(--grn); color: #fff; }
+.ne { background: var(--red); color: #fff; }
+.ni { background: var(--acc); color: #fff; }
+.nw { background: var(--ylw); color: #fff; }
+
+/* Modal */
+.moverlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,.3); backdrop-filter: blur(4px);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.moverlay.on { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--sur); border: 1px solid var(--brd); border-radius: 16px;
+  padding: 24px; width: 400px; max-width: 92vw;
+  transform: translateY(12px); transition: transform .2s;
+  box-shadow: var(--shadow-lg);
+}
+.moverlay.on .modal { transform: translateY(0); }
+.mtitle { font-size: 16px; font-weight: 700; color: var(--tx); margin-bottom: 4px; }
+.msub { font-size: 12px; color: var(--tx2); margin-bottom: 16px; line-height: 1.6; }
+.mact { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+
+/* Divider */
+.div { height: 1px; background: var(--brd); margin: 12px 0; }
+
+/* Scan tag */
+.scan-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; margin-bottom: 8px; background: var(--ylw-lt); color: var(--ylw); border: 1px solid rgba(217,119,6,.2); }
+
+/* Stat bar */
+.stat-row { display: flex; gap: 12px; font-family: var(--mono); font-size: 11px; }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+.spinner-acc { border-color: rgba(59,45,182,.2); border-top-color: var(--acc); }
+
+/* Export progress */
+#expProgress { display: none; margin-top: 10px; }
+#expProgress .prog-bar { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo-area">
+    <img src="assets/logo.png" alt="ÖZAR" onerror="this.style.display='none'">
+    <span class="logo-text">Şartname Aracı</span>
+  </div>
+  <div class="topbar-div"></div>
+  <div class="steps" id="stepBar">
+    <div class="step active" id="s1"><div class="step-num">1</div>Yükle</div>
+    <span class="step-arrow">›</span>
+    <div class="step" id="s2"><div class="step-num">2</div>Sayfalar</div>
+    <span class="step-arrow">›</span>
+    <div class="step" id="s3"><div class="step-num">3</div>İşle</div>
+    <span class="step-arrow">›</span>
+    <div class="step" id="s4"><div class="step-num">4</div>Düzenle</div>
+    <span class="step-arrow">›</span>
+    <div class="step" id="s5"><div class="step-num">5</div>Çıkar</div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-badge">
+      <div class="user-dot" id="userInitial">?</div>
+      <span id="userEmail">—</span>
+    </div>
+    <button class="btn" onclick="logout()" style="font-size:11px;padding:5px 10px">Çıkış</button>
+    <input type="file" id="fi" accept=".pdf" style="display:none" onchange="loadPDF(this.files[0])">
+    <button class="btn" id="btnNew" onclick="document.getElementById('fi').click()" style="display:none">📄 Yeni PDF</button>
+    <button class="btn btn-g" id="btnProcess" onclick="startProcessing()" style="display:none">⚡ Otomatik İşle</button>
+    <button class="btn btn-p" id="btnAddImg" onclick="startImgSel()" style="display:none">🖼 Görsel Ekle</button>
+  </div>
+</header>
+
+<div class="app-body">
+  <!-- PAGES STRIP -->
+  <div class="pages-strip" id="pagesStrip">
+    <div class="ps-hdr">
+      <span class="ps-hdr-t">SAYFALAR</span>
+      <span id="pgcount" style="font-family:var(--mono);font-size:10px;color:var(--acc);font-weight:600">—</span>
+    </div>
+    <div class="page-list" id="pageList"></div>
+  </div>
+
+  <!-- CANVAS -->
+  <main class="canvas-area">
+    <div class="ctoolbar" id="ctoolbar" style="display:none">
+      <button class="btn" onclick="navPage(-1)">← Önceki</button>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--tx2);font-weight:500" id="pgind">—</span>
+      <button class="btn" onclick="navPage(1)">Sonraki →</button>
+      <div id="toggleArea" style="display:flex;gap:5px">
+        <button class="btn" id="btnUse" onclick="setPageMode('use')">✓ Kullan</button>
+        <button class="btn" id="btnSkip" onclick="setPageMode('skip')">✕ Atla</button>
+      </div>
+      <span id="selinfo" style="font-size:11px;color:var(--ylw);font-family:var(--mono);font-weight:600;display:none">Görsel için alan seçin…</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        <button class="btn" onclick="changeZoom(-0.2)" style="padding:5px 9px">−</button>
+        <input type="range" id="zoomRange" min="25" max="300" step="5" value="100" style="width:80px;accent-color:var(--acc)" oninput="setZoom(this.value/100)">
+        <button class="btn" onclick="changeZoom(0.2)" style="padding:5px 9px">＋</button>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--acc);font-weight:600;min-width:36px" id="zoomVal">100%</span>
+        <button class="btn" onclick="fitZoom()" style="font-size:10px">Sığdır</button>
+      </div>
+    </div>
+
+    <div class="cscroll" id="cscroll">
+      <div class="dropzone" id="dropzone">
+        <div class="drop-icon">📄</div>
+        <div class="drop-title">PDF Yükle</div>
+        <div class="drop-sub">Sürükleyip bırakın veya tıklayın</div>
+        <button class="btn btn-p" onclick="document.getElementById('fi').click()" style="font-size:13px;padding:9px 20px">📁 Dosya Seç</button>
+        <div class="drop-note">
+          ⚡ <b>Claude Vision</b> ile otomatik OCR — dijital ve taranmış PDF'lerde çalışır.<br>
+          📊 <b>Tablolar</b> otomatik Word tablosuna dönüştürülür.<br>
+          🔒 <b>Anonimleştirme</b> ve 🌐 <b>İngilizce çeviri</b> desteklenir.
+        </div>
+      </div>
+      <div class="cwrap" id="cwrap" style="display:none">
+        <canvas id="pageCanvas"></canvas>
+        <div class="zone-ov zone-header" id="headerZone"><span class="zone-lbl" style="top:3px">HEADER — dışlanıyor</span></div>
+        <div class="zone-ov zone-footer" id="footerZone"><span class="zone-lbl" style="bottom:3px">FOOTER — dışlanıyor</span></div>
+        <div class="sel-rect" id="selRect"></div>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="prog-area" id="progArea">
+      <div class="prog-title">Sayfalar işleniyor… <span class="prog-pct" id="progPct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="prog-info" id="progInfo">Hazırlanıyor…</div>
+      <div class="prog-log" id="progLog"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-g" id="btnGoEdit" onclick="goToStep(4)" style="display:none">✓ Sonuçları Düzenle</button>
+        <button class="btn" onclick="cancelProcessing()">✕ İptal</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <div class="rpanel" id="rpanel">
+    <!-- Step 1 welcome -->
+    <div id="rpWelcome" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">
+      <div style="font-size:40px;margin-bottom:14px">📋</div>
+      <div style="font-size:15px;font-weight:700;color:var(--tx);margin-bottom:8px">Şartname İşleme Aracı</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:2.0">
+        PDF yükle → Sayfaları ayarla<br>
+        → Claude Vision ile işle → Düzenle<br>
+        → Word / Anonim / İngilizce
+      </div>
+      <div style="margin-top:16px;font-size:11px;color:var(--grn);background:var(--grn-lt);border:1px solid rgba(5,150,105,.2);border-radius:8px;padding:10px 12px;line-height:2.0;text-align:left">
+        ✅ Dijital ve taranmış PDF desteği<br>
+        ✅ Claude Vision — yüksek doğruluk<br>
+        ✅ Tablo tespiti otomatik<br>
+        ✅ TÜRASAŞ/TCDD anonimleştirme
+      </div>
+    </div>
+
+    <!-- Step 2 configure -->
+    <div id="rpConfig" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="rp-hdr">⚙️ Yapılandırma</div>
+      <div class="rp-body">
+        <div class="sec">
+          <div class="sec-t">Header / Footer Dışlama</div>
+          <div class="slider-row">
+            <span class="sl-lbl">Header</span>
+            <input type="range" id="headerPct" class="sl" min="0" max="25" step="1" value="8" oninput="updateZones()">
+            <span class="sl-val" id="headerVal">8%</span>
+          </div>
+          <div class="slider-row">
+            <span class="sl-lbl">Footer</span>
+            <input type="range" id="footerPct" class="sl" min="0" max="20" step="1" value="8" oninput="updateZones()">
+            <span class="sl-val" id="footerVal">8%</span>
+          </div>
+          <div class="hint" style="font-size:10px">Kırmızı bölgeler Word çıktısına dahil edilmez.</div>
+        </div>
+        <div class="div"></div>
+        <div class="sec">
+          <div class="sec-t">Sayfa Seçimi</div>
+          <div class="hint" style="margin-bottom:8px">Sol panelde thumbnail'e tıkla → "Atla" ile kapak / içindekiler sayfalarını çıkar.</div>
+          <div class="stat-row">
+            <span id="statUse" style="color:var(--grn)">— kullanılacak</span>
+            <span id="statSkip" style="color:var(--red)">— atlanacak</span>
+          </div>
+        </div>
+        <div class="div"></div>
+        <div class="sec">
+          <div class="sec-t">İşleme Motoru</div>
+          <div class="hint"><b>Claude Vision API</b> — Her sayfa görüntü olarak analiz edilir. Dijital ve taranmış PDF'lerde yüksek kalite. Tablolar Markdown formatında çıkarılır.</div>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn btn-g btn-full" onclick="startProcessing()">⚡ Otomatik İşlemeyi Başlat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 edit -->
+    <div id="rpEdit" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="rp-hdr">
+        <span>✏️ İçerik</span>
+        <span id="editPgInfo" style="font-family:var(--mono);font-size:10px;color:var(--acc);font-weight:600"></span>
+      </div>
+      <div class="rp-body" id="rpEditBody">
+        <div style="font-size:12px;color:var(--tx3);text-align:center;padding:20px">Sol listeden sayfa seçin</div>
+      </div>
+    </div>
+
+    <!-- Step 5 export -->
+    <div id="rpExport" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="rp-hdr">📤 Çıktı</div>
+      <div class="rp-body">
+        <div class="exp-card">
+          <div class="exp-card-t">💾 Doğrudan Word</div>
+          <div class="exp-card-d">İşlenmiş içeriği Word belgesi olarak indir.</div>
+          <button class="btn btn-p btn-full" onclick="exportDocx('direct')">Word Olarak İndir</button>
+          <div><span class="badge-offline">✅ Çevrimdışı</span></div>
+        </div>
+        <div class="exp-card">
+          <div class="exp-card-t">🔒 Anonimleştir + Word</div>
+          <div class="exp-card-d">TÜRASAŞ, TCDD, ihale, idare ve tüm kurumsal referansları nötr terimlerle değiştirir.</div>
+          <button class="btn btn-y btn-full" onclick="exportDocx('anon')">Anonimleştir & İndir</button>
+          <div><span class="badge-offline">✅ Çevrimdışı</span></div>
+        </div>
+        <div class="exp-card">
+          <div class="exp-card-t">🌐 İngilizceye Çevir + Word</div>
+          <div class="exp-card-d">Tüm metni teknik İngilizceye çevirir. Tablolar, başlıklar ve standartlar korunur.</div>
+          <button class="btn btn-v btn-full" onclick="exportDocx('translate')">Çevir & İndir</button>
+          <div><span class="badge-api">⚡ Claude API</span></div>
+        </div>
+        <div class="exp-card">
+          <div class="exp-card-t">🔒🌐 Anonim + İngilizce</div>
+          <div class="exp-card-d">Önce anonimleştirir, ardından İngilizceye çevirir.</div>
+          <button class="btn btn-full" onclick="exportDocx('anon_translate')" style="background:var(--sur2)">Anonim + Çevir & İndir</button>
+          <div><span class="badge-api">⚡ Claude API</span></div>
+        </div>
+        <div id="expProgress">
+          <div class="prog-bar"><div class="prog-fill" id="expFill" style="width:0%"></div></div>
+          <div style="font-size:11px;font-family:var(--mono);color:var(--tx2);margin-top:4px" id="expInfo"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image confirm modal -->
+<div class="moverlay" id="imgModal">
+  <div class="modal">
+    <div class="mtitle">Görsel Bölgesi</div>
+    <div class="msub">Seçilen alan görsel olarak Word belgesine eklenecek.</div>
+    <div id="imgPreview" style="text-align:center;margin-bottom:12px"></div>
+    <div class="mact">
+      <button class="btn" onclick="cancelImg()">İptal</button>
+      <button class="btn btn-g" onclick="confirmImg()">✓ Görsel Ekle</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── AUTH CHECK ─────────────────────────────────────
+(function() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('ozar_session') || '{}');
+    if (!s.ok || s.exp < Date.now()) {
+      sessionStorage.removeItem('ozar_session');
+      window.location.href = '/login.html';
+      return;
+    }
+  } catch { window.location.href = '/login.html'; return; }
+  // Kullanıcı adı gösterge güncelle
+  document.getElementById('userEmail').textContent = 'ÖZAR Kullanıcısı';
+  document.getElementById('userInitial').textContent = 'Ö';
+})();
+
+function logout() {
+  sessionStorage.removeItem('ozar_session');
+  window.location.href = '/login.html';
+}
+
+// ── STATE ──────────────────────────────────────────
+let pdfDoc = null, pdfName = 'belge', totalPages = 0;
+let curPage = 1, uiZoom = 1.0, renderScale = 1.6;
+let pageData = {};
+let currentStep = 1, procCancelled = false;
+let imgSel = false, imgDrawing = false, imgStart = {}, imgPending = null;
+
+// ── STEP NAV ───────────────────────────────────────
+function goToStep(n) {
+  currentStep = n;
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById('s' + i);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    el.onclick = i < n ? () => goToStep(i) : null;
+  });
+  const ids = ['rpWelcome','rpConfig','rpEdit','rpExport'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  document.getElementById('ctoolbar').style.display = 'none';
+  document.getElementById('cscroll').style.display = 'flex';
+  document.getElementById('progArea').style.display = 'none';
+  document.getElementById('btnProcess').style.display = 'none';
+  document.getElementById('btnAddImg').style.display = 'none';
+  document.getElementById('toggleArea').style.display = 'flex';
+  document.getElementById('headerZone').style.display = 'none';
+  document.getElementById('footerZone').style.display = 'none';
+
+  if (n === 1) {
+    document.getElementById('rpWelcome').style.display = 'flex';
+    document.getElementById('dropzone').style.display = 'flex';
+    document.getElementById('cwrap').style.display = 'none';
+    document.getElementById('pagesStrip').classList.remove('open');
+    document.getElementById('btnNew').style.display = 'none';
+  } else if (n === 2) {
+    document.getElementById('rpConfig').style.display = 'flex';
+    document.getElementById('ctoolbar').style.display = 'flex';
+    document.getElementById('btnNew').style.display = 'inline-flex';
+    document.getElementById('btnProcess').style.display = 'inline-flex';
+    document.getElementById('headerZone').style.display = 'block';
+    document.getElementById('footerZone').style.display = 'block';
+    updateZones();
+  } else if (n === 3) {
+    document.getElementById('cscroll').style.display = 'none';
+    document.getElementById('progArea').style.display = 'flex';
+    document.getElementById('btnNew').style.display = 'inline-flex';
+  } else if (n === 4) {
+    document.getElementById('rpEdit').style.display = 'flex';
+    document.getElementById('ctoolbar').style.display = 'flex';
+    document.getElementById('toggleArea').style.display = 'none';
+    document.getElementById('btnNew').style.display = 'inline-flex';
+    document.getElementById('btnAddImg').style.display = 'inline-flex';
+    updateEditPanel();
+  } else if (n === 5) {
+    document.getElementById('rpExport').style.display = 'flex';
+    document.getElementById('ctoolbar').style.display = 'flex';
+    document.getElementById('toggleArea').style.display = 'none';
+    document.getElementById('btnNew').style.display = 'inline-flex';
+  }
+}
+
+// ── PDF LOAD ───────────────────────────────────────
+const dz = document.getElementById('dropzone');
+dz.addEventListener('click', () => document.getElementById('fi').click());
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dov'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dov'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dov'); const f = e.dataTransfer.files[0]; if (f?.type === 'application/pdf') loadPDF(f); });
+
+async function loadPDF(file) {
+  if (!file) return;
+  pdfName = file.name.replace(/\.pdf$/i, '');
+  toast('PDF yükleniyor…', 'i');
+  try {
+    const ab = await file.arrayBuffer();
+    pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+    totalPages = pdfDoc.numPages;
+    pageData = {};
+    for (let i = 1; i <= totalPages; i++) pageData[i] = { mode: 'use', text: '', images: [], isScanned: false };
+    document.getElementById('pgcount').textContent = totalPages;
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('cwrap').style.display = 'block';
+    document.getElementById('pagesStrip').classList.add('open');
+    await buildThumbs();
+    curPage = 1;
+    await renderPage(curPage);
+    goToStep(2);
+    updateStats();
+    toast('PDF yüklendi — ' + totalPages + ' sayfa', 's');
+  } catch (err) { toast('PDF yüklenemedi: ' + err.message, 'e'); }
+}
+
+async function buildThumbs() {
+  const list = document.getElementById('pageList');
+  list.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const div = document.createElement('div');
+    div.className = 'pi'; div.id = 'pi' + i;
+    div.onclick = () => switchPage(i);
+    div.innerHTML = `<div class="pi-thumb" id="pth${i}"></div><div class="pi-num">S${i}</div><span class="pi-badge b-use" id="pb${i}">kullan</span>`;
+    list.appendChild(div);
+    (async (pg) => {
+      try {
+        const p = await pdfDoc.getPage(pg);
+        const vp = p.getViewport({ scale: 0.17 });
+        const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+        await p.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        const th = document.getElementById('pth' + pg);
+        if (th) { th.innerHTML = ''; th.appendChild(c); }
+      } catch (_) {}
+    })(i);
+  }
+}
+
+async function switchPage(n) {
+  if (!pdfDoc || n < 1 || n > totalPages) return;
+  curPage = n;
+  await renderPage(n);
+  document.querySelectorAll('.pi').forEach(el => el.classList.remove('active'));
+  const pi = document.getElementById('pi' + n);
+  if (pi) { pi.classList.add('active'); pi.scrollIntoView({ block: 'nearest' }); }
+  document.getElementById('pgind').textContent = n + ' / ' + totalPages;
+  updateModeBtns();
+  if (currentStep === 4) updateEditPanel();
+  renderImgOverlays();
+}
+function navPage(d) { switchPage(curPage + d); }
+
+let renderTask = null;
+async function renderPage(n) {
+  if (renderTask) { try { renderTask.cancel(); } catch (_) {} }
+  const page = await pdfDoc.getPage(n);
+  const vp = page.getViewport({ scale: renderScale * uiZoom });
+  const canvas = document.getElementById('pageCanvas');
+  canvas.width = vp.width; canvas.height = vp.height;
+  renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport: vp });
+  await renderTask.promise.catch(() => {});
+  renderTask = null;
+  updateZones();
+}
+
+function setPageMode(m) { pageData[curPage].mode = m; updateModeBtns(); updateBadge(curPage); updateStats(); }
+function updateModeBtns() {
+  const m = pageData[curPage]?.mode || 'use';
+  document.getElementById('btnUse').className = 'btn' + (m === 'use' ? ' btn-g' : '');
+  const bs = document.getElementById('btnSkip');
+  if (m === 'skip') { bs.style.background = 'var(--red)'; bs.style.borderColor = 'var(--red)'; bs.style.color = '#fff'; }
+  else { bs.style.background = ''; bs.style.borderColor = ''; bs.style.color = ''; }
+}
+function updateBadge(n) {
+  const b = document.getElementById('pb' + n);
+  const p = document.getElementById('pi' + n);
+  if (!b || !p) return;
+  const pg = pageData[n];
+  if (pg.mode === 'skip') { b.textContent = 'atla'; b.className = 'pi-badge b-skip'; p.classList.add('skip-mode'); }
+  else if (pg.isScanned && pg.text?.length > 10) { b.textContent = 'OCR✓'; b.className = 'pi-badge b-scan'; p.classList.remove('skip-mode'); }
+  else if (pg.text?.length > 10) { b.textContent = '✓'; b.className = 'pi-badge b-done'; p.classList.remove('skip-mode'); }
+  else { b.textContent = 'kullan'; b.className = 'pi-badge b-use'; p.classList.remove('skip-mode'); }
+}
+function updateStats() {
+  let u = 0, s = 0;
+  for (let i = 1; i <= totalPages; i++) { if (pageData[i]?.mode === 'skip') s++; else u++; }
+  document.getElementById('statUse').textContent = u + ' kullanılacak';
+  document.getElementById('statSkip').textContent = s + ' atlanacak';
+}
+
+// ── ZOOM ───────────────────────────────────────────
+function setZoom(z) {
+  uiZoom = Math.max(0.25, Math.min(3, z));
+  document.getElementById('zoomRange').value = Math.round(uiZoom * 100);
+  document.getElementById('zoomVal').textContent = Math.round(uiZoom * 100) + '%';
+  renderPage(curPage);
+}
+function changeZoom(d) { setZoom(uiZoom + d); }
+function fitZoom() {
+  const sc = document.getElementById('cscroll');
+  const cv = document.getElementById('pageCanvas');
+  if (!cv.width) return;
+  setZoom((sc.clientWidth - 48) / (cv.width / uiZoom));
+}
+
+// ── ZONES ──────────────────────────────────────────
+function updateZones() {
+  const cv = document.getElementById('pageCanvas');
+  if (!cv.width) return;
+  const h = cv.height;
+  const hp = parseInt(document.getElementById('headerPct').value) || 0;
+  const fp = parseInt(document.getElementById('footerPct').value) || 0;
+  document.getElementById('headerVal').textContent = hp + '%';
+  document.getElementById('footerVal').textContent = fp + '%';
+  const hz = document.getElementById('headerZone');
+  const fz = document.getElementById('footerZone');
+  hz.style.top = '0'; hz.style.height = (h * hp / 100) + 'px';
+  fz.style.bottom = '0'; fz.style.height = (h * fp / 100) + 'px'; fz.style.top = 'auto';
+  if (hp === 0 || currentStep !== 2) hz.style.display = 'none'; else hz.style.display = 'block';
+  if (fp === 0 || currentStep !== 2) fz.style.display = 'none'; else fz.style.display = 'block';
+}
+
+// ── IMAGE SELECTION ────────────────────────────────
+function startImgSel() {
+  imgSel = true;
+  document.getElementById('selinfo').style.display = 'block';
+  document.getElementById('cwrap').style.cursor = 'crosshair';
+  const w = document.getElementById('cwrap');
+  w.addEventListener('mousedown', onImgDown);
+  w.addEventListener('mousemove', onImgMove);
+  w.addEventListener('mouseup', onImgUp);
+}
+function onImgDown(e) { if (!imgSel) return; imgDrawing = true; const r = document.getElementById('cwrap').getBoundingClientRect(); imgStart = { x: e.clientX - r.left, y: e.clientY - r.top }; }
+function onImgMove(e) {
+  if (!imgDrawing) return;
+  const r = document.getElementById('cwrap').getBoundingClientRect();
+  const x2 = e.clientX - r.left, y2 = e.clientY - r.top;
+  const sr = document.getElementById('selRect');
+  sr.style.display = 'block';
+  sr.style.left = Math.min(imgStart.x, x2) + 'px'; sr.style.top = Math.min(imgStart.y, y2) + 'px';
+  sr.style.width = Math.abs(x2 - imgStart.x) + 'px'; sr.style.height = Math.abs(y2 - imgStart.y) + 'px';
+}
+async function onImgUp(e) {
+  if (!imgDrawing) return; imgDrawing = false;
+  const w = document.getElementById('cwrap');
+  w.removeEventListener('mousedown', onImgDown); w.removeEventListener('mousemove', onImgMove); w.removeEventListener('mouseup', onImgUp);
+  imgSel = false; w.style.cursor = 'default'; document.getElementById('selinfo').style.display = 'none'; document.getElementById('selRect').style.display = 'none';
+  const r = document.getElementById('cwrap').getBoundingClientRect();
+  const x2 = e.clientX - r.left, y2 = e.clientY - r.top;
+  const rx = Math.min(imgStart.x, x2), ry = Math.min(imgStart.y, y2);
+  const rw = Math.abs(x2 - imgStart.x), rh = Math.abs(y2 - imgStart.y);
+  if (rw < 8 || rh < 8) { toast('Seçim çok küçük', 'w'); return; }
+  const canvas = document.getElementById('pageCanvas');
+  const tmp = document.createElement('canvas'); tmp.width = rw; tmp.height = rh;
+  tmp.getContext('2d').drawImage(canvas, rx, ry, rw, rh, 0, 0, rw, rh);
+  const dataUrl = tmp.toDataURL('image/png');
+  const sc = renderScale * uiZoom;
+  const canvasH = canvas.height;
+  imgPending = { x: rx / sc, y: ry / sc, w: rw / sc, h: rh / sc, dataUrl, page: curPage, id: Date.now(), yFraction: canvasH > 0 ? ry / canvasH : 0.5 };
+  document.getElementById('imgPreview').innerHTML = `<img src="${dataUrl}" style="max-width:340px;max-height:180px;border-radius:6px;border:1px solid var(--brd)">`;
+  document.getElementById('imgModal').classList.add('on');
+}
+function cancelImg() { document.getElementById('imgModal').classList.remove('on'); imgPending = null; }
+function confirmImg() {
+  if (!imgPending) return;
+  pageData[imgPending.page].images.push({ ...imgPending });
+  document.getElementById('imgModal').classList.remove('on');
+  renderImgOverlays(); updateEditPanel(); imgPending = null;
+  toast('Görsel eklendi', 's');
+}
+function renderImgOverlays() {
+  document.querySelectorAll('.img-ov').forEach(el => el.remove());
+  const w = document.getElementById('cwrap'); const sc = renderScale * uiZoom;
+  (pageData[curPage]?.images || []).forEach(img => {
+    const div = document.createElement('div'); div.className = 'img-ov';
+    div.style.cssText = `left:${img.x * sc}px;top:${img.y * sc}px;width:${img.w * sc}px;height:${img.h * sc}px`;
+    const del = document.createElement('button'); del.className = 'img-ov-del'; del.innerHTML = '×';
+    del.onclick = e => { e.stopPropagation(); deleteImg(img.id); };
+    div.appendChild(del); w.appendChild(div);
+  });
+}
+function deleteImg(id) { pageData[curPage].images = pageData[curPage].images.filter(im => im.id !== id); renderImgOverlays(); updateEditPanel(); }
+
+// ── CLAUDE VISION PROCESSING ───────────────────────
+async function processPageWithClaude(pageNum, headerPct, footerPct) {
+  const pg = await pdfDoc.getPage(pageNum);
+  const vp = pg.getViewport({ scale: 2.0 });
+  const canvas = document.createElement('canvas');
+  canvas.width = vp.width; canvas.height = vp.height;
+  await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+
+  const H = vp.height;
+  const headerH = Math.floor(H * headerPct / 100);
+  const footerH = Math.floor(H * footerPct / 100);
+  const contentH = H - headerH - footerH;
+  if (contentH <= 0) return '[Boş sayfa]';
+
+  const cropped = document.createElement('canvas');
+  cropped.width = vp.width; cropped.height = contentH;
+  cropped.getContext('2d').drawImage(canvas, 0, headerH, vp.width, contentH, 0, 0, vp.width, contentH);
+
+  const b64 = cropped.toDataURL('image/jpeg', 0.88).split(',')[1];
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      system: `Türkçe teknik şartname OCR asistanısın. Sayfa görüntüsündeki TÜM içeriği eksiksiz çıkar.
+
+KURALLAR:
+1. Tabloları Markdown tablo formatında yaz: | Sütun1 | Sütun2 |
+2. Tablo ayırıcı satırını ekle: |---|---|
+3. Numaralı başlıkları koru (1. 1.1. a) vb.)
+4. Liste maddelerini - ile başlat  
+5. Önemli başlıkları ## ile işaretle
+6. Türkçe karakterleri AYNEN koru (İ Ğ Ü Ş Ö Ç)
+7. Cümle ortasındaki satır sonlarını birleştir
+8. SADECE içeriği döndür — açıklama ekleme`,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+          { type: 'text', text: 'Bu şartname sayfasındaki tüm içeriği Markdown formatında çıkar.' }
+        ]
+      }]
+    })
+  });
+
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message || 'Claude API hatası');
+  return data.content.map(c => c.type === 'text' ? c.text : '').join('').trim() || '[İçerik bulunamadı]';
+}
+
+async function startProcessing() {
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) { if (pageData[i]?.mode !== 'skip') pages.push(i); }
+  if (!pages.length) { toast('İşlenecek sayfa yok', 'w'); return; }
+  goToStep(3);
+  procCancelled = false;
+  const headerPct = parseInt(document.getElementById('headerPct').value) || 0;
+  const footerPct = parseInt(document.getElementById('footerPct').value) || 0;
+  const log = document.getElementById('progLog');
+  log.innerHTML = '';
+  document.getElementById('btnGoEdit').style.display = 'none';
+  let done = 0;
+  const setProg = (pct, info) => {
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progPct').textContent = Math.round(pct) + '%';
+    document.getElementById('progInfo').textContent = info;
+  };
+  const addLog = (msg, cls) => {
+    const d = document.createElement('div'); d.className = cls || ''; d.textContent = msg;
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+  };
+  for (const pg of pages) {
+    if (procCancelled) { addLog('⚠ İptal edildi.', 'plog-err'); break; }
+    addLog('→ Sayfa ' + pg + ' işleniyor…');
+    setProg((done / pages.length) * 100, 'Sayfa ' + pg + ' / ' + totalPages);
+    try {
+      const text = await processPageWithClaude(pg, headerPct, footerPct);
+      pageData[pg].text = text;
+      updateBadge(pg);
+      const wc = text.split(/\s+/).filter(Boolean).length;
+      addLog('✓ Sayfa ' + pg + ': ' + wc + ' kelime', 'plog-ok');
+    } catch (err) {
+      addLog('✗ Sayfa ' + pg + ': ' + err.message, 'plog-err');
+      pageData[pg].text = '[İşlenemedi]';
+      updateBadge(pg);
+    }
+    done++;
+    setProg((done / pages.length) * 100, 'Sayfa ' + pg + ' tamamlandı');
+    await new Promise(r => setTimeout(r, 200));
+  }
+  setProg(100, 'Tamamlandı!');
+  addLog('━ ' + done + ' sayfa işlendi ━', 'plog-ok');
+  document.getElementById('btnGoEdit').style.display = 'inline-flex';
+  if (!procCancelled) setTimeout(() => goToStep(4), 500);
+}
+function cancelProcessing() { procCancelled = true; }
+
+// ── EDIT PANEL ─────────────────────────────────────
+function updateEditPanel() {
+  const body = document.getElementById('rpEditBody');
+  document.getElementById('editPgInfo').textContent = 'Sayfa ' + curPage;
+  const pg = pageData[curPage];
+  if (!pg) { body.innerHTML = '<p style="color:var(--tx3);font-size:12px;padding:12px">Veri yok</p>'; return; }
+  if (pg.mode === 'skip') { body.innerHTML = '<p style="color:var(--tx3);font-size:12px;text-align:center;padding:14px">Bu sayfa atlandı</p>'; return; }
+  let html = '';
+  if (pg.isScanned) html += '<div class="scan-tag">🔍 OCR ile işlendi</div>';
+  html += `<div style="margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx3);margin-bottom:5px">Çıkarılan Metin (Markdown)</div>
+    <textarea class="pcontent" id="ta_content" rows="16" oninput="pageData[${curPage}].text=this.value"></textarea>
+  </div>`;
+  if (pg.images.length > 0) {
+    html += `<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx3);margin-bottom:5px">Görseller (${pg.images.length})</div>`;
+    pg.images.forEach(img => {
+      html += `<div style="margin-bottom:6px;position:relative">
+        <img src="${img.dataUrl}" style="max-width:100%;border-radius:6px;border:1px solid var(--brd);display:block">
+        <button class="btn" onclick="deleteImg(${img.id})" style="position:absolute;top:5px;right:5px;background:var(--red);border-color:var(--red);color:#fff;font-size:10px;padding:2px 7px">× Kaldır</button>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += `<div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn" onclick="startImgSel()">+ Görsel Seç</button>
+    <button class="btn btn-p" onclick="goToStep(5)" style="margin-left:auto">Çıktı Seç →</button>
+  </div>`;
+  body.innerHTML = html;
+  const ta = document.getElementById('ta_content');
+  if (ta) ta.value = pg.text || '';
+}
+function deleteImg(id) { pageData[curPage].images = pageData[curPage].images.filter(im => im.id !== id); renderImgOverlays(); updateEditPanel(); }
+
+// ── ANONYMIZATION ──────────────────────────────────
+function anonymizeText(text) {
+  const R = (pat, rep, flags = 'gi') => ([new RegExp(pat, flags), rep]);
+  const rules = [
+    R('Türkiye Raylı Sistem Araçları Sanayii Anonim Şirketi', 'Alıcı'),
+    R('Türkiye Cumhuriyeti Devlet Demiryolları', 'Alıcı'),
+    R('TCDD\\s+Taşımacılık\\s+A\\.Ş\\.', 'Alıcı'),
+    R('TCDD\\s+Taşımacılık', 'Alıcı'),
+    R('TÜRASAŞ', 'Alıcı'), R('TÜLOMSAŞ', 'Alıcı'), R('T\\.C\\.D\\.D\\.', 'Alıcı'), R('TCDD', 'Alıcı'),
+    R('[A-ZÇĞİÖŞÜa-zçğışöü][\\w\\sÇĞİÖŞÜçğışöü]*\\s+Genel\\s+Müdürlüğü', 'Alıcı Birimi'),
+    R('[A-ZÇĞİÖŞÜa-zçğışöü][\\w\\sÇĞİÖŞÜçğışöü]*\\s+Başkanlığı', 'Alıcı Birimi'),
+    R('[A-ZÇĞİÖŞÜa-zçğışöü][\\w\\sÇĞİÖŞÜçğışöü]*\\s+Müdürlüğü', 'Alıcı Birimi'),
+    R('[İI]hale\\s+[Yy]etkilisi', 'Yetkili'),
+    R('[İI]hale\\s+[Kk]omisyonu', 'Teknik Komite'),
+    R('[İI]hale\\s+Kayıt\\s+Numarası[:\\s]*[\\d\\-/]+', 'Ref. No'),
+    R('[İI]KN[:\\s]*[\\d\\-/]+', 'Ref. No'),
+    R('ihaleye', 'tedarike'), R('ihalenin', 'tedarikinin'), R('ihaleyi', 'tedariki'),
+    R('ihalede', 'tedarikte'), R('ihaleler', 'tedarikler'), R('ihale', 'tedarik'),
+    R('İhaleye', 'Tedarike', 'g'), R('İhalenin', 'Tedarikinin', 'g'), R('İhaleyi', 'Tedariki', 'g'),
+    R('İhalede', 'Tedarikte', 'g'), R('İhaleler', 'Tedarikler', 'g'), R('İhale', 'Tedarik', 'g'),
+    R('idareye', 'alıcı tarafa'), R('idarenin', 'alıcı tarafın'), R('idareyi', 'alıcı tarafı'),
+    R('idarede', 'alıcı tarafta'), R('idarece', 'alıcı tarafça'), R('idare', 'alıcı taraf'),
+    R('İdareye', 'Alıcı Tarafa', 'g'), R('İdarenin', 'Alıcı Tarafın', 'g'),
+    R('İdareyi', 'Alıcı Tarafı', 'g'), R('İdarede', 'Alıcı Tarafta', 'g'),
+    R('İdarece', 'Alıcı Tarafça', 'g'), R('İdare', 'Alıcı Taraf', 'g'),
+    [/[ \t]{2,}/g, ' '],
+  ];
+  let t = text;
+  for (const [pat, rep] of rules) { try { t = t.replace(pat, rep); } catch (e) {} }
+  return t;
+}
+
+// ── TRANSLATION ────────────────────────────────────
+async function translateChunk(text) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      system: `Professional Turkish→English technical translator for railway/procurement specs.
+- Translate ALL text to fluent technical English
+- Preserve Markdown tables: | col | col |
+- Preserve headings: ## 1. 1.1.
+- Preserve standards: EN 15663, ISO, TSE, NoBo, CE
+- Preserve measurements: 25 kN, 150 mm, %15
+- "şartname"→"technical specification", "alıcı taraf"→"client", "tedarikçi"→"supplier/contractor"
+- Return ONLY translated text`,
+      messages: [{ role: 'user', content: text }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message || 'API hatası');
+  return data.content.map(c => c.type === 'text' ? c.text : '').join('').trim();
+}
+
+function splitChunks(text, max) {
+  const chunks = []; const paras = text.split('\n\n'); let cur = '';
+  for (const p of paras) {
+    if (cur.length + p.length > max && cur.length > 0) { chunks.push(cur.trim()); cur = ''; }
+    cur += p + '\n\n';
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  return chunks.length ? chunks : [text];
+}
+
+// ── EXPORT ─────────────────────────────────────────
+async function exportDocx(mode) {
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) {
+    const pg = pageData[i];
+    if (!pg || pg.mode === 'skip') continue;
+    pages.push({ num: i, text: pg.text || '', images: [...pg.images] });
+  }
+  if (!pages.length) { toast('Çıktı alınacak içerik yok', 'w'); return; }
+
+  const expProg = document.getElementById('expProgress');
+  const expFill = document.getElementById('expFill');
+  const expInfo = document.getElementById('expInfo');
+  expProg.style.display = 'block'; expFill.style.width = '5%';
+  document.querySelectorAll('.rpanel .btn').forEach(b => b.disabled = true);
+
+  try {
+    if (mode === 'anon' || mode === 'anon_translate') {
+      expInfo.textContent = 'Anonimleştiriliyor…';
+      pages.forEach(p => { p.text = anonymizeText(p.text); });
+      expFill.style.width = '30%';
+    }
+    if (mode === 'translate' || mode === 'anon_translate') {
+      expInfo.textContent = 'Çevriliyor…';
+      const full = pages.map(p => p.text).join('\n\n<<PG>>\n\n');
+      const chunks = splitChunks(full, 5000);
+      let translated = '';
+      for (let i = 0; i < chunks.length; i++) {
+        expInfo.textContent = `Çevriliyor… (${i + 1}/${chunks.length})`;
+        expFill.style.width = ((i + 1) / chunks.length * 55 + 30) + '%';
+        translated += await translateChunk(chunks[i]);
+        if (i < chunks.length - 1) translated += '\n\n<<PG>>\n\n';
+      }
+      const parts = translated.split(/<<PG>>/);
+      pages.forEach((p, i) => { if (parts[i]) p.text = parts[i].trim(); });
+    }
+    expFill.style.width = '88%'; expInfo.textContent = 'Word oluşturuluyor…';
+    const blob = buildDocx(pages);
+    expFill.style.width = '100%'; expInfo.textContent = '✓ Tamamlandı!';
+    const suffix = { direct: '', anon: '_anonim', translate: '_EN', anon_translate: '_anonim_EN' }[mode] || '';
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = pdfName + suffix + '.docx'; a.click();
+    toast('Word belgesi indirildi', 's');
+  } catch (err) {
+    expInfo.textContent = 'Hata: ' + err.message;
+    toast('Hata: ' + err.message, 'e');
+  }
+  document.querySelectorAll('.rpanel .btn').forEach(b => b.disabled = false);
+  setTimeout(() => { expProg.style.display = 'none'; }, 4000);
+}
+
+// ── MARKDOWN PARSER ────────────────────────────────
+function xe(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function parseMarkdown(md) {
+  const lines = (md || '').split('\n');
+  const blocks = []; let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim().startsWith('|') && line.includes('|', 1)) {
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        const l = lines[i].trim();
+        if (!l.match(/^\|[\s\-:|]+\|$/)) {
+          const cells = l.split('|').filter((_, idx, a) => idx > 0 && idx < a.length - 1).map(c => c.trim());
+          rows.push(cells);
+        }
+        i++;
+      }
+      if (rows.length > 0) blocks.push({ type: 'table', rows });
+      continue;
+    }
+    const hm = line.match(/^(#{1,4})\s+(.+)/);
+    if (hm) { blocks.push({ type: 'h', lvl: hm[1].length, text: hm[2] }); i++; continue; }
+    if (line.match(/^---+$/)) { blocks.push({ type: 'hr' }); i++; continue; }
+    const lm = line.match(/^(\s*)[-*•]\s+(.+)/);
+    if (lm) { blocks.push({ type: 'li', text: lm[2], ind: lm[1].length }); i++; continue; }
+    const nm = line.match(/^(\s*\d+[.)]\s+)(.+)/);
+    if (nm) { blocks.push({ type: 'ni', text: nm[1] + nm[2] }); i++; continue; }
+    if (line.trim() === '') { blocks.push({ type: 'empty' }); i++; continue; }
+    let paraLines = [line]; i++;
+    while (i < lines.length) {
+      const nx = lines[i];
+      if (nx.trim() === '') break;
+      if (/^(#{1,4}\s|\|\s|[-*•]\s|\d+[.)]\s)/.test(nx.trim())) break;
+      paraLines.push(nx); i++;
+    }
+    blocks.push({ type: 'p', text: paraLines.join(' ') });
+  }
+  return blocks;
+}
+
+// ── DOCX BUILDER ───────────────────────────────────
+function buildDocx(pages) {
+  const NS = [
+    'xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"',
+    'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"',
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"',
+    'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"',
+    'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"',
+    'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"',
+    'xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"',
+    'xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml"',
+    'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"',
+    'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"',
+    'mc:Ignorable="w14 w15"',
+  ].join(' ');
+
+  const F = '<w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>';
+  let body = '';
+  const imgFiles = []; let imgIdx = 0;
+
+  const para = (text, sz, bold, just, spA, indL) => {
+    const rpr = `<w:rPr>${F}${bold ? '<w:b/>' : ''}<w:sz w:val="${sz || 24}"/><w:szCs w:val="${sz || 24}"/><w:lang w:val="tr-TR"/></w:rPr>`;
+    const ppr = `<w:pPr><w:spacing w:before="0" w:after="${spA || 120}"/>${just ? `<w:jc w:val="${just}"/>` : ''}${indL ? `<w:ind w:left="${indL}"/>` : ''}</w:pPr>`;
+    return `<w:p>${ppr}<w:r>${rpr}<w:t xml:space="preserve">${xe(text)}</w:t></w:r></w:p>\n`;
+  };
+
+  const tblXml = (rows) => {
+    if (!rows || !rows.length) return '';
+    const nCols = Math.max(...rows.map(r => r.length));
+    const TOTAL_W = 9026;
+    const colW = Math.floor(TOTAL_W / nCols);
+    const grid = '<w:tblGrid>' + Array(nCols).fill(`<w:gridCol w:w="${colW}"/>`).join('') + '</w:tblGrid>';
+    const brd = '<w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>';
+    let t = `<w:tbl><w:tblPr><w:tblW w:w="${TOTAL_W}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders>${brd}</w:tblBorders></w:tblPr>${grid}`;
+    rows.forEach((row, ri) => {
+      while (row.length < nCols) row.push('');
+      t += `<w:tr>${ri === 0 ? '<w:trPr><w:tblHeader/></w:trPr>' : ''}`;
+      row.forEach((cell) => {
+        const isH = ri === 0;
+        const shade = isH ? '<w:shd w:val="clear" w:color="auto" w:fill="EEF0F8"/>' : '';
+        const rpr = `<w:rPr>${F}${isH ? '<w:b/>' : ''}<w:sz w:val="20"/><w:szCs w:val="20"/><w:lang w:val="tr-TR"/></w:rPr>`;
+        t += `<w:tc><w:tcPr><w:tcW w:w="${colW}" w:type="dxa"/>${shade}</w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/>${isH ? '<w:jc w:val="center"/>' : ''}</w:pPr><w:r>${rpr}<w:t xml:space="preserve">${xe(cell || '')}</w:t></w:r></w:p></w:tc>`;
+      });
+      t += '</w:tr>';
+    });
+    return t + '</w:tbl>\n<w:p/>\n';
+  };
+
+  const addImage = (img) => {
+    const rId = 'rId' + (imgIdx + 10);
+    const ext = img.dataUrl.startsWith('data:image/png') ? 'png' : 'jpeg';
+    const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+    const b64 = img.dataUrl.split(',')[1];
+    const MAX_EMU = 5943600;
+    let eW = Math.round(img.w * 2.0) * 9144;
+    let eH = Math.round(img.h * 2.0) * 9144;
+    if (eW > MAX_EMU) { const r = eH / eW; eW = MAX_EMU; eH = Math.round(eW * r); }
+    eW = Math.max(eW, 91440); eH = Math.max(eH, 91440);
+    imgFiles.push({ rId, b64, ext, mime });
+    const xml = `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="120" w:after="120"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="114300" distR="114300"><wp:extent cx="${Math.round(eW)}" cy="${Math.round(eH)}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="${imgIdx + 1}" name="Img${imgIdx + 1}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${imgIdx + 1}" name="Img${imgIdx + 1}"/><pic:cNvPicPr><a:picLocks noChangeAspect="1"/></pic:cNvPicPr></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${Math.round(eW)}" cy="${Math.round(eH)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>\n`;
+    imgIdx++;
+    return xml;
+  };
+
+  for (const page of pages) {
+    const blocks = parseMarkdown(page.text);
+    const sortedImgs = [...(page.images || [])].sort((a, b) => (a.yFraction || 0) - (b.yFraction || 0));
+    const nBlocks = blocks.length || 1;
+    const imgAt = {};
+    for (const img of sortedImgs) {
+      const idx = Math.min(Math.round((img.yFraction || 1) * nBlocks), nBlocks);
+      if (!imgAt[idx]) imgAt[idx] = [];
+      imgAt[idx].push(img);
+    }
+    if (imgAt[0]) for (const img of imgAt[0]) body += addImage(img);
+    blocks.forEach((bl, bi) => {
+      if (bl.type === 'p') body += para(bl.text, 24, false, 'both', 120);
+      else if (bl.type === 'h') { const sz = {1:34,2:30,3:27,4:24}[bl.lvl]||24; body += para(bl.text, sz, true, 'left', 200); }
+      else if (bl.type === 'li') body += para('• ' + bl.text, 24, false, 'both', 80, 360);
+      else if (bl.type === 'ni') body += para(bl.text, 24, false, 'both', 80, 360);
+      else if (bl.type === 'table') body += tblXml(bl.rows);
+      else if (bl.type === 'hr') body += `<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="CCCCCC"/></w:pBdr><w:spacing w:after="120"/></w:pPr></w:p>\n`;
+      else if (bl.type === 'empty') body += '<w:p><w:pPr><w:spacing w:after="60"/></w:pPr></w:p>\n';
+      const after = bi + 1;
+      if (imgAt[after]) for (const img of imgAt[after]) body += addImage(img);
+    });
+    if (!blocks.length) for (const img of sortedImgs) body += addImage(img);
+    body += '<w:p><w:pPr><w:spacing w:after="0"/></w:pPr></w:p>\n';
+  }
+  if (!body) body = '<w:p><w:r><w:t>İçerik yok.</w:t></w:r></w:p>';
+
+  const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document ${NS}><w:body>${body}
+<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1701" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr>
+</w:body></w:document>`;
+
+  const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="tr-TR" w:eastAsia="tr-TR" w:bidi="ar-SA"/></w:rPr></w:rPrDefault>
+<w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
+</w:styles>`;
+
+  let relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>\n`;
+  for (const img of imgFiles) relsXml += `<Relationship Id="${img.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${img.rId}.${img.ext}"/>\n`;
+  relsXml += '</Relationships>';
+
+  const extSet = new Set(); let ctEx = '';
+  for (const img of imgFiles) if (!extSet.has(img.ext)) { ctEx += `<Default Extension="${img.ext}" ContentType="${img.mime}"/>\n`; extSet.add(img.ext); }
+  const ctXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n<Default Extension="xml" ContentType="application/xml"/>\n${ctEx}<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>\n<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles.main+xml"/>\n</Types>`;
+  const dotRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>\n</Relationships>`;
+
+  const enc = new TextEncoder();
+  function b64u8(b) { const bin = atob(b); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+  const entries = { '[Content_Types].xml': enc.encode(ctXml), '_rels/.rels': enc.encode(dotRels), 'word/document.xml': enc.encode(docXml), 'word/styles.xml': enc.encode(stylesXml), 'word/_rels/document.xml.rels': enc.encode(relsXml) };
+  for (const img of imgFiles) entries[`word/media/${img.rId}.${img.ext}`] = b64u8(img.b64);
+  return new Blob([buildZip(entries)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+
+// ── ZIP BUILDER ────────────────────────────────────
+const CRC_T = (() => { const t = new Uint32Array(256); for (let i = 0; i < 256; i++) { let c = i; for (let j = 0; j < 8; j++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c; } return t; })();
+function crc32(buf) { let c = 0xFFFFFFFF; for (let i = 0; i < buf.length; i++) c = CRC_T[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function sB(s) { const b = []; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); if (c < 0x80) b.push(c); else if (c < 0x800) { b.push(0xC0 | (c >> 6), 0x80 | (c & 0x3F)); } else { b.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F)); } } return new Uint8Array(b); }
+function u32(n) { return [(n) & 0xFF, (n >> 8) & 0xFF, (n >> 16) & 0xFF, (n >> 24) & 0xFF]; }
+function u16(n) { return [(n) & 0xFF, (n >> 8) & 0xFF]; }
+function buildZip(entries) {
+  const lh = [], parts = []; let off = 0;
+  for (const [name, data] of Object.entries(entries)) {
+    const nb = sB(name); const crc = crc32(data); const sz = data.length;
+    const h = new Uint8Array([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, ...u32(crc), ...u32(sz), ...u32(sz), ...u16(nb.length), 0x00, 0x00]);
+    lh.push({ off, nb, crc, sz }); parts.push(h, nb, data); off += h.length + nb.length + sz;
+  }
+  const cs = off; const ch = []; let i = 0;
+  for (const [name] of Object.entries(entries)) {
+    const { off: lo, nb, crc, sz } = lh[i++];
+    const c = new Uint8Array([0x50, 0x4B, 0x01, 0x02, 0x14, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, ...u32(crc), ...u32(sz), ...u32(sz), ...u16(nb.length), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, ...u32(lo)]);
+    ch.push(c, nb); off += c.length + nb.length;
+  }
+  const eocd = new Uint8Array([0x50, 0x4B, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00, ...u16(lh.length), ...u16(lh.length), ...u32(off - cs), ...u32(cs), 0x00, 0x00]);
+  const all = [...parts, ...ch.flat(), eocd];
+  const total = all.reduce((a, b) => a + b.length, 0);
+  const buf = new Uint8Array(total); let p = 0;
+  for (const x of all) { buf.set(x, p); p += x.length; }
+  return buf;
+}
+
+// ── TOAST & KEYBOARD ───────────────────────────────
+function toast(msg, type) {
+  const n = document.getElementById('notif'); n.textContent = msg;
+  n.className = 'notif on n' + (type || 'i');
+  clearTimeout(n._t); n._t = setTimeout(() => n.classList.remove('on'), 3000);
+}
+document.addEventListener('keydown', e => {
+  if (!pdfDoc || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navPage(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navPage(-1);
+  if (e.key === '+' || e.key === '=') changeZoom(0.2);
+  if (e.key === '-') changeZoom(-0.2);
+  if (e.key === 'Escape') document.querySelectorAll('.moverlay').forEach(m => m.classList.remove('on'));
+});
+</script>
+</body>
+</html>
